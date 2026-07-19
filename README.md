@@ -9,7 +9,7 @@ and optional custom DNS servers, exposing its ID and GUID so companion modules
 
 ```hcl
 module "vnet" {
-  source = "github.com/cybercapybara/terraform-azurerm-vnet"
+  source = "github.com/moveeeax/terraform-azurerm-vnet"
 
   name                = "prod-vnet"
   resource_group_name = "prod-rg"
