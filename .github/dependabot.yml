@@ -13,3 +13,15 @@ updates:
         update-types: [patch]
       minor:
         update-types: [minor]
+
+  - package-ecosystem: terraform
+    directories:
+      - /
+      - /examples/basic
+    schedule:
+      interval: monthly
+    groups:
+      patch:
+        update-types: [patch]
+      minor:
+        update-types: [minor]

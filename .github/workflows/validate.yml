@@ -5,15 +5,19 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: opentofu/setup-opentofu@v1
+      - uses: opentofu/setup-opentofu@v2
         with:
           tofu_wrapper: false
+          tofu_version: 1.13.8
 
       - name: fmt
         run: tofu fmt -check -recursive
@@ -36,9 +40,49 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: terraform-linters/setup-tflint@v5
+      - uses: terraform-linters/setup-tflint@v6
+        with:
+          tflint_version: v0.65.0
 
       - name: tflint
-        run: tflint --recursive
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          tflint --init
+          tflint --recursive
+
+  # README promises the module works across azurerm majors; prove it. The
+  # validate job above already covers the latest release (no lock file).
+  provider-matrix:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        azurerm: ["3.0.0", "3.117.1", "4.0.0", "4.81.0"]
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: opentofu/setup-opentofu@v2
+        with:
+          tofu_wrapper: false
+          tofu_version: 1.13.8
+
+      - name: pin azurerm ${{ matrix.azurerm }}, validate and test
+        env:
+          AZURERM_VERSION: ${{ matrix.azurerm }}
+        run: |
+          cat > override.tf <<EOF
+          terraform {
+            required_providers {
+              azurerm = {
+                source  = "hashicorp/azurerm"
+                version = "${AZURERM_VERSION}"
+              }
+            }
+          }
+          EOF
+          tofu init -backend=false -upgrade
+          tofu validate
+          tofu test
