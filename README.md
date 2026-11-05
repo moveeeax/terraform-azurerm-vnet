@@ -101,10 +101,12 @@ API error minutes into an apply. The module rejects:
 | Name      | Version  |
 |-----------|----------|
 | terraform | >= 1.5   |
-| azurerm   | >= 3.0   |
+| azurerm   | >= 3.0, < 6.0 |
 
-The module is exercised against azurerm 3.0.0, 3.117.1, 4.0.0 and the current
-4.x release. Running the test suite additionally needs Terraform or OpenTofu
+CI validates and tests the module against azurerm 3.0.0, 3.117.1 (last 3.x),
+4.0.0, 4.81.0 (last 4.x) and the latest 5.x release. In azurerm 5.0
+`azurerm_virtual_network` only lost `subnet.service_endpoints`, which the module
+does not set. 6.x is excluded until it has been tested. Running the test suite additionally needs Terraform or OpenTofu
 >= 1.7 for `mock_provider`; the module itself does not.
 
 ## Inputs
@@ -145,6 +147,9 @@ terraform init -backend=false && terraform validate
 terraform test        # unit tests, mocked provider, no Azure credentials needed
 tflint --recursive
 ```
+
+CI runs the same steps with OpenTofu (`tofu fmt`, `tofu validate`, `tofu test`);
+either toolchain works locally.
 
 ## License
 
